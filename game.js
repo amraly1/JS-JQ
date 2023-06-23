@@ -1,0 +1,69 @@
+let buttonColours = ["red", "blue", "green", "yellow"];
+
+let gamePattern = [];
+let userClickedPattern = [];
+
+let started = false;
+let level = 0;
+
+$(document).keypress(function() {
+    if (!started) {
+        $("#level-title").text("Level " + level);
+        nextSequence();
+        started = true;
+    }
+});
+
+$(".btn").click(function() {
+    var userChosenColour = $(this).attr("id");
+    userClickedPattern.push(userChosenColour);
+    playSound(userChosenColour);
+    animatePress(userChosenColour);
+    checkAnswer(userClickedPattern.length - 1); // pass index of last answer
+});
+
+function nextSequence() {
+    level++;
+    $("#level-title").text("Level " + level);
+    var randomNumber = Math.floor(Math.random() * 4);
+    var randomChosenColour = buttonColours[randomNumber];
+    gamePattern.push(randomChosenColour);
+    $("#" + randomChosenColour).fadeIn(100).fadeOut(100).fadeIn(100);
+    playSound(randomChosenColour);
+}
+
+function playSound(name) {
+    var audio = new Audio("sounds/" + name + ".mp3");
+    audio.play();
+}
+
+function animatePress(currentColor) {
+    $("#" + currentColor).addClass("pressed");
+    setTimeout(function () {
+        $("#" + currentColor).removeClass("pressed");
+    }, 100);
+}
+
+function checkAnswer(currentLevel) {
+    console.log("userClickedPattern:", userClickedPattern);
+    console.log("gamePattern:", gamePattern);
+    if (userClickedPattern[currentLevel] === gamePattern[currentLevel]) {
+        if (userClickedPattern.length === gamePattern.length) {
+            setTimeout(function() {
+                nextSequence();
+                userClickedPattern = []; // reset userClickedPattern
+            }, 1000);
+        }
+    } else {
+        let wrongSound = new Audio("sounds/wrong.mp3");
+        wrongSound.play();
+        $("body").addClass("game-over");
+        setTimeout(function() {
+            $("body").removeClass("game-over");
+        }, 200);
+        userClickedPattern = []; // reset userClickedPattern
+        started = false; // reset started to allow for restarting the game
+        level = 0; // reset level to start at level 1
+        $("#level-title").text("Press Any Key to Start");
+    }
+}
